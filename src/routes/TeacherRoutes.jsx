@@ -23,38 +23,53 @@ import StudyMaterialView from "../pages/StudyMaterialView";
 import SessionRecordings from "../pages/SessionRecordings";
 import UploadRecording from "../pages/UploadRecording";
 
-/* ✅ LIVE SESSION PAGES (Corrected) */
+/* ✅ LIVE SESSION PAGES */
 import LiveSessions from "../pages/LiveSessions";
 import TeacherCreateLiveSession from "../pages/TeacherCreateLiveSession";
+import LiveSessionDetail from "../pages/LiveSessionDetail";
 
 export default function TeacherRoutes() {
   return (
     <Routes>
+
       {/* Default redirect */}
       <Route path="/" element={<Navigate to="/teacher/dashboard" />} />
 
       <Route element={<TeacherLayout />}>
 
         {/* ================= DASHBOARD ================= */}
-        <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
+        <Route
+          path="/teacher/dashboard"
+          element={<TeacherDashboard />}
+        />
 
         {/* ================= SUBJECT LIST ================= */}
-        <Route path="/teacher/classes" element={<ClassesList />} />
-        <Route path="/teacher/classes/:subjectId" element={<Classes />} />
+        <Route
+          path="/teacher/classes"
+          element={<ClassesList />}
+        />
+
+        <Route
+          path="/teacher/classes/:subjectId"
+          element={<Classes />}
+        />
 
         {/* ================= ASSIGNMENTS ================= */}
         <Route
           path="/teacher/classes/:subjectId/assignments"
           element={<Assignments />}
         />
+
         <Route
           path="/teacher/classes/:subjectId/assignments/create"
           element={<CreateAssignment />}
         />
+
         <Route
           path="/teacher/classes/:subjectId/assignments/:assignmentId"
           element={<AssignmentView />}
         />
+
         <Route
           path="/teacher/classes/:subjectId/assignments/:assignmentId/submissions"
           element={<SubmissionView />}
@@ -65,18 +80,22 @@ export default function TeacherRoutes() {
           path="/teacher/classes/:subjectId/quizzes"
           element={<Quizzes />}
         />
+
         <Route
           path="/teacher/classes/:subjectId/quizzes/create"
           element={<CreateQuiz />}
         />
+
         <Route
           path="/teacher/classes/:subjectId/quizzes/:quizId"
           element={<QuizView />}
         />
+
         <Route
           path="/teacher/classes/:subjectId/quizzes/:quizId/submissions"
           element={<QuizSubmissionView />}
         />
+
         <Route
           path="/teacher/classes/:subjectId/quizzes/:quizId/review"
           element={<QuizReviewView />}
@@ -87,10 +106,12 @@ export default function TeacherRoutes() {
           path="/teacher/classes/:subjectId/study-materials"
           element={<StudyMaterials />}
         />
+
         <Route
           path="/teacher/classes/:subjectId/study-materials/upload"
           element={<UploadMaterial />}
         />
+
         <Route
           path="/teacher/classes/:subjectId/study-materials/:materialId"
           element={<StudyMaterialView />}
@@ -101,6 +122,7 @@ export default function TeacherRoutes() {
           path="/teacher/classes/:subjectId/session-recordings"
           element={<SessionRecordings />}
         />
+
         <Route
           path="/teacher/classes/:subjectId/session-recordings/upload"
           element={<UploadRecording />}
@@ -111,9 +133,16 @@ export default function TeacherRoutes() {
           path="/teacher/classes/:subjectId/live-sessions"
           element={<LiveSessions />}
         />
+
         <Route
           path="/teacher/classes/:subjectId/live-sessions/create"
           element={<TeacherCreateLiveSession />}
+        />
+
+        {/* 🔥 THIS WAS MISSING — TEACHER LIVE ROOM */}
+        <Route
+          path="/teacher/live/:id"
+          element={<LiveSessionDetail />}
         />
 
       </Route>
