@@ -7,7 +7,41 @@
   background: #b7d3d6;
 }
 
+.profile-menu {
+  position: relative;
+}
+
 .profile-img {
+  cursor: pointer;
+}
+
+.dropdown {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  min-width: 220px;
+  z-index: 100;
+  overflow: hidden;
+  padding: 8px 0;
+}
+
+.dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+}
+
+.dropdown-username {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.dropdown-avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;

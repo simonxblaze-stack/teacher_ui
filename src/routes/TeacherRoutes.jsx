@@ -27,6 +27,8 @@ import UploadRecording from "../pages/UploadRecording";
 import LiveSessions from "../pages/LiveSessions";
 import TeacherCreateLiveSession from "../pages/TeacherCreateLiveSession";
 
+import Profile from "../pages/Profile";
+
 export default function TeacherRoutes() {
   return (
     <Routes>
@@ -34,6 +36,9 @@ export default function TeacherRoutes() {
       <Route path="/" element={<Navigate to="/teacher/dashboard" />} />
 
       <Route element={<TeacherLayout />}>
+
+        {/* ================= PROFILE ================= */}
+        <Route path="/teacher/profile" element={<Profile />} />
 
         {/* ================= DASHBOARD ================= */}
         <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
