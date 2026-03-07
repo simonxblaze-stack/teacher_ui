@@ -88,18 +88,16 @@ export default function CreateQuiz() {
 
       <div className="cq-shell">
         <div className="cq-title-container">
-          <h2 className="cq-title">Create Quiz</h2>
 
-          <div className="cq-search">
-            <input
-              type="text"
-              placeholder="Quiz Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-            <span className="cq-search-icon">⌕</span>
-          </div>
-        </div>
+  <input
+    className="cq-title-input"
+    type="text"
+    placeholder="Quiz Title"
+    value={title}
+    onChange={(e) => setTitle(e.target.value)}
+  />
+
+</div>
 
         <div className="cq-form-container">
           <div className="cq-questions-list">
@@ -156,23 +154,25 @@ export default function CreateQuiz() {
           </div>
 
           <div className="cq-bottom-row">
-            <button
-              type="button"
-              className="cq-add-question-btn"
-              onClick={addQuestion}
-            >
-              Add Question
-            </button>
 
-            <button
-              type="button"
-              className="cq-create-btn"
-              onClick={handleCreate}
-              disabled={loading}
-            >
-              {loading ? "Creating..." : "Create"}
-            </button>
-          </div>
+  <button
+    type="button"
+    className="cq-add-question-btn"
+    onClick={addQuestion}
+  >
+    Add Question
+  </button>
+
+  <button
+    type="button"
+    className="cq-create-btn"
+    onClick={handleCreate}
+    disabled={loading}
+  >
+    {loading ? "Creating..." : "Create"}
+  </button>
+
+</div>
         </div>
       </div>
     </div>
