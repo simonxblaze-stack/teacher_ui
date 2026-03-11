@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { IoChevronBack } from "react-icons/io5";
 import { FiSearch } from "react-icons/fi";
@@ -8,36 +8,53 @@ import "../styles/upload-material.css";
 export default function UploadMaterial() {
 
   const navigate = useNavigate();
-
-  // Must match router param
   const { subjectId } = useParams();
 
   const [title, setTitle] = useState("");
   const [files, setFiles] = useState([]);
+  const [chapters, setChapters] = useState([]);
+  const [chapterId, setChapterId] = useState("");
   const [uploading, setUploading] = useState(false);
 
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (subjectId) {
+      loadChapters();
+    }
+  }, [subjectId]);
+
+  const loadChapters = async () => {
+    try {
+      const res = await api.get(`/courses/subjects/${subjectId}/chapters/`);
+      setChapters(res.data);
+    } catch (err) {
+      console.error("Failed to load chapters", err);
+      alert("Failed to load chapters");
+    }
+  };
 
   const handleAddAttachment = () => {
     fileInputRef.current.click();
   };
 
   const handleFileChange = (e) => {
-
     const selected = Array.from(e.target.files || []);
-
     if (selected.length > 0) {
       setFiles((prev) => [...prev, ...selected]);
     }
-
     e.target.value = "";
-
   };
 
   const handleUpload = async () => {
 
     if (!title.trim()) {
       alert("Please enter a title");
+      return;
+    }
+
+    if (!chapterId) {
+      alert("Please select a chapter");
       return;
     }
 
@@ -58,15 +75,17 @@ export default function UploadMaterial() {
       });
 
       await api.post(
-        `/materials/subjects/${subjectId}/materials/upload/`,
+        `/materials/chapters/${chapterId}/materials/upload/`,
         formData
       );
 
       alert("Upload successful");
 
-      navigate(
-        `/teacher/classes/${subjectId}/study-materials`
-      );
+      setFiles([]);
+      setTitle("");
+      setChapterId("");
+
+      navigate(`/teacher/classes/${subjectId}/study-materials`);
 
     } catch (err) {
 
@@ -74,9 +93,7 @@ export default function UploadMaterial() {
       alert("Upload failed");
 
     } finally {
-
       setUploading(false);
-
     }
 
   };
@@ -93,16 +110,12 @@ export default function UploadMaterial() {
       </button>
 
       <div className="um-title-container">
-
-        <h2 className="um-title">
-          Study Materials
-        </h2>
+        <h2 className="um-title">Study Materials</h2>
 
         <div className="um-search">
           <input type="text" placeholder="Search" />
           <FiSearch className="um-search-icon" />
         </div>
-
       </div>
 
       <div className="um-form-container">
@@ -114,16 +127,31 @@ export default function UploadMaterial() {
           </h3>
 
           <div className="um-field">
-
             <label className="um-label">Title</label>
-
             <input
               type="text"
               className="um-input"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
+          </div>
 
+          <div className="um-field">
+            <label className="um-label">Chapter</label>
+
+            <select
+              className="um-input"
+              value={chapterId}
+              onChange={(e) => setChapterId(e.target.value)}
+            >
+              <option value="">Select Chapter</option>
+
+              {chapters.map((chapter) => (
+                <option key={chapter.id} value={chapter.id}>
+                  {chapter.title}
+                </option>
+              ))}
+            </select>
           </div>
 
           <input
@@ -135,17 +163,13 @@ export default function UploadMaterial() {
           />
 
           {files.length > 0 && (
-
             <div className="um-file-list">
-
               {files.map((f, i) => (
                 <span key={i} className="um-file-name">
                   {f.name}
                 </span>
               ))}
-
             </div>
-
           )}
 
           <button
@@ -168,7 +192,5 @@ export default function UploadMaterial() {
       </div>
 
     </div>
-
   );
-
 }
