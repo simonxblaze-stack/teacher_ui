@@ -7,6 +7,7 @@ import "../styles/classes-list.css";
 
 export default function ClassesList() {
   const navigate = useNavigate();
+
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -17,7 +18,15 @@ export default function ClassesList() {
           "/courses/teacher/my-classes/"
         );
 
-        setSubjects(res.data);
+        // Normalize API response so subjectId is always available
+        const normalized = res.data.map((s) => ({
+          subjectId: s.subject_id || s.id,
+          subjectName: s.subject_name || s.name,
+          courseTitle: s.course_title || "",
+        }));
+
+        setSubjects(normalized);
+
       } catch (err) {
         console.error("Failed to load teacher subjects", err);
         setSubjects([]);
@@ -33,6 +42,7 @@ export default function ClassesList() {
 
   return (
     <div className="cl-wrapper">
+
       <button
         className="cl-back-btn"
         onClick={() => navigate("/teacher/dashboard")}
@@ -41,39 +51,52 @@ export default function ClassesList() {
       </button>
 
       <div className="cl-container">
+
         <div className="cl-top">
           <h2>My Classes</h2>
           <SearchBar />
         </div>
 
         <div className="cl-grid">
+
           {subjects.length === 0 && (
-            <p style={{ opacity: 0.6 }}>No subjects assigned.</p>
+            <p style={{ opacity: 0.6 }}>
+              No subjects assigned.
+            </p>
           )}
 
           {subjects.map((subject) => (
+
             <div
               className="cl-card"
-              key={subject.subject_id}
+              key={subject.subjectId}
               onClick={() =>
                 navigate(
-                  `/teacher/classes/${subject.subject_id}`
+                  `/teacher/classes/${subject.subjectId}`
                 )
               }
             >
+
               <p className="cl-card-name">
-                {subject.subject_name}
+                {subject.subjectName}
               </p>
 
               <div className="cl-card-right">
+
                 <span className="cl-card-label">
-                  {subject.course_title}
+                  {subject.courseTitle}
                 </span>
+
               </div>
+
             </div>
+
           ))}
+
         </div>
+
       </div>
+
     </div>
   );
 }
