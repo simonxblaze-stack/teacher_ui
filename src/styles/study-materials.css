@@ -218,28 +218,30 @@
   font-size: 14px;
   padding: 40px 0;
 }
-
-@media (max-width: 768px) {
+@media (max-width: 480px) {
   .sm-row {
     display: flex;
-    align-items: center;
     flex-wrap: wrap;
+    align-items: center;
     gap: 8px 12px;
     padding: 12px 14px;
   }
 
   .sm-col-name {
     flex: 1 1 100%;
+    font-weight: 600;
   }
 
   .sm-col-date,
   .sm-col-files {
-    flex: 0 1 auto;
+    flex: 0 0 auto;
   }
 
   .sm-col-actions {
-    margin-left: auto;
+    width: 100%;
     display: flex;
+    justify-content: flex-start;
     gap: 8px;
+    margin-top: 4px;
   }
 }
