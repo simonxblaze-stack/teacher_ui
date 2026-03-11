@@ -9,22 +9,20 @@ import "../styles/study-materials.css";
 export default function StudyMaterials() {
 
   const navigate = useNavigate();
-  const { chapterId } = useParams();
+  const { subjectId } = useParams();
 
   const [materials, setMaterials] = useState([]);
 
   useEffect(() => {
-
     loadMaterials();
-
-  }, []);
+  }, [subjectId]);
 
   const loadMaterials = async () => {
 
     try {
 
       const res = await api.get(
-        `/materials/chapters/${chapterId}/materials/`
+        `/materials/chapters/${subjectId}/materials/`
       );
 
       setMaterials(res.data);
@@ -49,7 +47,7 @@ export default function StudyMaterials() {
 
     } catch (err) {
 
-      console.error("Delete failed");
+      console.error("Delete failed", err);
 
     }
 
@@ -86,7 +84,7 @@ export default function StudyMaterials() {
           <button
             className="sm-add-btn"
             onClick={() =>
-              navigate(`/teacher/classes/${chapterId}/study-materials/upload`)
+              navigate(`/teacher/classes/${subjectId}/study-materials/upload`)
             }
           >
             + Add Study Material
@@ -147,7 +145,7 @@ export default function StudyMaterials() {
                     className="sm-view-btn"
                     onClick={() =>
                       navigate(
-                        `/teacher/classes/${chapterId}/study-materials/view`,
+                        `/teacher/classes/${subjectId}/study-materials/${material.id}`,
                         { state: material }
                       )
                     }
