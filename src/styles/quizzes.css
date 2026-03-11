@@ -185,9 +185,9 @@
 @media (max-width: 480px) {
   .quiz-row {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1.2fr 1fr 0.8fr;
     gap: 8px 10px;
-    align-items: start;
+    align-items: center;
     padding: 12px 10px;
   }
 
@@ -214,6 +214,12 @@
     width: 110px;
     max-width: 110px;
     margin-top: 6px;
-    display: block;
+    min-width: 0;
+  }
+
+  .quiz-info,
+  .quiz-detail {
+    font-size: 13px;
+    line-height: 1.3;
   }
 }
