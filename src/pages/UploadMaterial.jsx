@@ -6,7 +6,6 @@ import api from "../api/apiClient";
 import "../styles/upload-material.css";
 
 export default function UploadMaterial() {
-
   const navigate = useNavigate();
   const { subjectId } = useParams();
 
@@ -20,31 +19,35 @@ export default function UploadMaterial() {
   };
 
   const handleFileChange = (e) => {
-
     if (e.target.files.length > 0) {
       setFiles((prev) => [...prev, ...Array.from(e.target.files)]);
     }
-
     e.target.value = "";
   };
 
   const handleUpload = async () => {
-
     if (!title.trim()) return;
+    if (!subjectId) {
+      console.error("Missing subjectId");
+      return;
+    }
 
     try {
-
       const formData = new FormData();
-
       formData.append("title", title);
 
       files.forEach((file) => {
-        formData.append("files", file);
+        formData.append("files[]", file); // safer for multiple uploads
       });
 
       await api.post(
         `/materials/chapters/${subjectId}/materials/upload/`,
-        formData
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
 
       navigate(-1);
@@ -52,12 +55,10 @@ export default function UploadMaterial() {
     } catch (err) {
       console.error("Upload failed:", err);
     }
-
   };
 
   return (
     <div className="upload-material-page">
-
       <button className="um-back-btn" onClick={() => navigate(-1)}>
         <IoChevronBack /> Back
       </button>
@@ -72,15 +73,12 @@ export default function UploadMaterial() {
       </div>
 
       <div className="um-form-container">
-
         <div className="um-form-card">
-
           <h3 className="um-form-heading">
             Create New Study Material
           </h3>
 
           <div className="um-field">
-
             <label className="um-label">
               Title
             </label>
@@ -91,7 +89,6 @@ export default function UploadMaterial() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
-
           </div>
 
           <input
@@ -103,19 +100,13 @@ export default function UploadMaterial() {
           />
 
           {files.length > 0 && (
-
             <div className="um-file-list">
-
               {files.map((f, i) => (
-
                 <span key={i} className="um-file-name">
                   {f.name}
                 </span>
-
               ))}
-
             </div>
-
           )}
 
           <button
@@ -131,11 +122,8 @@ export default function UploadMaterial() {
           >
             Upload
           </button>
-
         </div>
-
       </div>
-
     </div>
   );
 }
