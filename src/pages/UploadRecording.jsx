@@ -62,9 +62,9 @@ export default function UploadRecording() {
 
       console.log("Video slot created:", videoId);
 
-      // 2️⃣ Upload video to Bunny
+      // 2️⃣ Upload video directly to Bunny Storage
       const uploadUrl =
-        `https://video.bunnycdn.com/library/615730/videos/${videoId}`;
+        `https://storage.bunnycdn.com/library/${import.meta.env.VITE_BUNNY_LIBRARY_ID}/videos/${videoId}`;
 
       const xhr = new XMLHttpRequest();
 
@@ -94,7 +94,7 @@ export default function UploadRecording() {
 
       xhr.onload = async () => {
 
-        console.log("Upload finished");
+        console.log("Upload finished", xhr.status);
 
         if (xhr.status !== 200 && xhr.status !== 201) {
           alert("Upload failed");
@@ -119,6 +119,7 @@ export default function UploadRecording() {
       };
 
       xhr.onerror = () => {
+        console.error("Upload failed");
         alert("Upload failed");
         setUploading(false);
       };
@@ -208,7 +209,7 @@ export default function UploadRecording() {
             type="file"
             ref={fileInputRef}
             style={{ display: "none" }}
-            accept="video/*"
+            accept="video/mp4,video/webm,video/quicktime"
             onChange={handleFileChange}
           />
 
