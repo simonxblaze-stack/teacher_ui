@@ -17,7 +17,7 @@ export default function QuizSubmissionView() {
   useEffect(() => {
     async function fetchSubmissions() {
       try {
-        const res = await api.get(`/quizzes/${quizId}/attempts/`);
+        const res = await api.get(`/teacher/quizzes/${quizId}/attempts/`);
         setStudents(res.data);
       } catch (err) {
         console.error("Failed to load submissions", err);
@@ -44,7 +44,7 @@ export default function QuizSubmissionView() {
   };
 
 
-  
+
   return (
     <div className="qsv-page">
 
