@@ -105,10 +105,7 @@ export default function QuizSubmissionView() {
                     className="qsv-review-btn"
                     onClick={() =>
                       navigate(
-                        `/teacher/classes/${subjectId}/quizzes/${quizId}/review`,
-                        {
-                          state: student,
-                        }
+                       `/teacher/classes/${subjectId}/quizzes/${quizId}/review/${student.id}`
                       )
                     }
                   >

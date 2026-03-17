@@ -96,7 +96,7 @@ export default function TeacherRoutes() {
         />
 
         <Route
-          path="classes/:subjectId/quizzes/:quizId/review"
+          path="classes/:subjectId/quizzes/:quizId/review/:attemptId"
           element={<QuizReviewView />}
         />
 

@@ -1,53 +1,32 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { IoChevronBack } from "react-icons/io5";
 import { FiSearch } from "react-icons/fi";
+import api from "../api/apiClient";
 import "../styles/quiz-review-view.css";
-
-const dummyQuestions = [
-  {
-    question: "What is . . .",
-    options: ["answer 1", "answer 2", "answer 3", "answer 4"],
-    correctAnswer: 0,
-    selectedAnswer: 0,
-  },
-  {
-    question: "What is . . .",
-    options: ["answer 1", "answer 2", "answer 3", "answer 4"],
-    correctAnswer: 2,
-    selectedAnswer: 2,
-  },
-  {
-    question: "What is . . .",
-    options: ["answer 1", "answer 2", "answer 3", "answer 4"],
-    correctAnswer: 3,
-    selectedAnswer: 1,
-  },
-  {
-    question: "What is . . .",
-    options: ["answer 1", "answer 2", "answer 3", "answer 4"],
-    correctAnswer: 1,
-    selectedAnswer: 1,
-  },
-  {
-    question: "What is . . .",
-    options: ["answer 1", "answer 2", "answer 3", "answer 4"],
-    correctAnswer: 3,
-    selectedAnswer: 3,
-  },
-];
 
 export default function QuizReviewView() {
   const navigate = useNavigate();
-  const { state } = useLocation();
+  const { attemptId } = useParams();
 
-  const studentName = state?.studentName || "[Student Name]";
-  const dueDate = state?.dueDate || "24 Jan 2026";
-  const submittedDate = state?.submittedDate || "22 Jan 2026 (7:00 PM)";
-  const questions = state?.questions || dummyQuestions;
+  const [data, setData] = useState(null);
 
-  const correctCount = questions.filter(
-    (q) => q.selectedAnswer === q.correctAnswer
-  ).length;
+  useEffect(() => {
+    async function fetchReview() {
+      try {
+        const res = await api.get(`/teacher/attempts/${attemptId}/`);
+        setData(res.data);
+      } catch (err) {
+        console.error("Failed to load review", err);
+      }
+    }
+
+    fetchReview();
+  }, [attemptId]);
+
+  if (!data) {
+    return <div style={{ padding: "40px" }}>Loading review...</div>;
+  }
 
   return (
     <div className="qrv-page">
@@ -57,7 +36,7 @@ export default function QuizReviewView() {
 
       <div className="qrv-card">
         <div className="qrv-header">
-          <h2 className="qrv-title">Subject Name - Quiz ID</h2>
+          <h2 className="qrv-title">Quiz Review</h2>
           <div className="qrv-search">
             <input type="text" placeholder="Search" />
             <FiSearch className="qrv-search-icon" />
@@ -65,30 +44,31 @@ export default function QuizReviewView() {
         </div>
 
         <div className="qrv-content">
-          <h3 className="qrv-student-name">{studentName}</h3>
+          <h3 className="qrv-student-name">{data.student_name}</h3>
 
           <div className="qrv-dates-row">
             <span className="qrv-date-text">
-              Due Date: {dueDate}
-            </span>
-            <span className="qrv-date-text">
-              Submitted: {submittedDate}
+              Submitted:{" "}
+              {data.submitted_at
+                ? new Date(data.submitted_at).toLocaleString()
+                : "-"}
             </span>
           </div>
 
           <div className="qrv-questions-list">
-            {questions.map((q, qIndex) => (
+            {data.questions.map((q, qIndex) => (
               <div className="qrv-question-block" key={qIndex}>
                 <div className="qrv-question-text">
                   {qIndex + 1}. {q.question}
                 </div>
+
                 <div className="qrv-options-answer-row">
                   <div className="qrv-options-row">
                     {q.options.map((opt, optIndex) => (
                       <label className="qrv-option" key={optIndex}>
                         <input
                           type="radio"
-                          checked={q.selectedAnswer === optIndex}
+                          checked={opt === q.selected}
                           disabled
                           readOnly
                         />
@@ -96,8 +76,9 @@ export default function QuizReviewView() {
                       </label>
                     ))}
                   </div>
+
                   <span className="qrv-answer-tag">
-                    Ans: {q.options[q.correctAnswer]}
+                    Ans: {q.correct}
                   </span>
                 </div>
               </div>
@@ -105,7 +86,7 @@ export default function QuizReviewView() {
           </div>
 
           <div className="qrv-score">
-            Score: {correctCount}/{questions.length}
+            Score: {data.score}/{data.total}
           </div>
         </div>
       </div>
