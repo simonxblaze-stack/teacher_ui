@@ -103,6 +103,7 @@ export default function CreateQuiz() {
 
       <div className="cq-shell">
         <div className="cq-title-container">
+          <h1 style={{ color: "red" }}>EXPLANATION TEST</h1>
 
   <input
     className="cq-title-input"
