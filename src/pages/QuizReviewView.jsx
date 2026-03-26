@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { IoChevronBack } from "react-icons/io5";
 import { FiSearch } from "react-icons/fi";
+import { IoCheckmarkCircle, IoCloseCircle } from "react-icons/io5";
 import api from "../api/apiClient";
 import "../styles/quiz-review-view.css";
 
@@ -10,6 +11,8 @@ export default function QuizReviewView() {
   const { attemptId } = useParams();
 
   const [data, setData] = useState(null);
+  const [search, setSearch] = useState("");
+  const [revealed, setRevealed] = useState({});
 
   useEffect(() => {
     async function fetchReview() {
@@ -20,13 +23,23 @@ export default function QuizReviewView() {
         console.error("Failed to load review", err);
       }
     }
-
     fetchReview();
   }, [attemptId]);
 
+  const toggleReveal = (idx) =>
+    setRevealed((prev) => ({ ...prev, [idx]: !prev[idx] }));
+
   if (!data) {
-    return <div style={{ padding: "40px" }}>Loading review...</div>;
+    return <div className="qrv-loading">Loading review...</div>;
   }
+
+  const filtered = data.questions.filter((q) =>
+    q.question.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const correct = data.questions.filter((q) => q.selected === q.correct).length;
+  const total = data.questions.length;
+  const pct = Math.round((correct / total) * 100);
 
   return (
     <div className="qrv-page">
@@ -38,15 +51,19 @@ export default function QuizReviewView() {
         <div className="qrv-header">
           <h2 className="qrv-title">Quiz Review</h2>
           <div className="qrv-search">
-            <input type="text" placeholder="Search" />
             <FiSearch className="qrv-search-icon" />
+            <input
+              type="text"
+              placeholder="Search questions..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
         </div>
 
         <div className="qrv-content">
-          <h3 className="qrv-student-name">{data.student_name}</h3>
-
-          <div className="qrv-dates-row">
+          <div className="qrv-meta-row">
+            <h3 className="qrv-student-name">{data.student_name}</h3>
             <span className="qrv-date-text">
               Submitted:{" "}
               {data.submitted_at
@@ -55,38 +72,102 @@ export default function QuizReviewView() {
             </span>
           </div>
 
-          <div className="qrv-questions-list">
-            {data.questions.map((q, qIndex) => (
-              <div className="qrv-question-block" key={qIndex}>
-                <div className="qrv-question-text">
-                  {qIndex + 1}. {q.question}
-                </div>
-
-                <div className="qrv-options-answer-row">
-                  <div className="qrv-options-row">
-                    {q.options.map((opt, optIndex) => (
-                      <label className="qrv-option" key={optIndex}>
-                        <input
-                          type="radio"
-                          checked={opt === q.selected}
-                          disabled
-                          readOnly
-                        />
-                        <span>{opt}</span>
-                      </label>
-                    ))}
-                  </div>
-
-                  <span className="qrv-answer-tag">
-                    Ans: {q.correct}
-                  </span>
-                </div>
-              </div>
-            ))}
+          <div className="qrv-score-banner">
+            <div className="qrv-score-circle">
+              <span className="qrv-score-pct">{pct}%</span>
+            </div>
+            <div className="qrv-score-details">
+              <span className="qrv-score-label">Final Score</span>
+              <span className="qrv-score-fraction">
+                {data.score} / {data.total} correct
+              </span>
+            </div>
+            <div className="qrv-score-bar-wrap">
+              <div
+                className="qrv-score-bar-fill"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
           </div>
 
-          <div className="qrv-score">
-            Score: {data.score}/{data.total}
+          <div className="qrv-questions-list">
+            {filtered.map((q, qIndex) => {
+              const isCorrect = q.selected === q.correct;
+              const isOpen = !!revealed[qIndex];
+
+              return (
+                <div
+                  className={`qrv-question-block ${isCorrect ? "qrv-correct" : "qrv-wrong"}`}
+                  key={qIndex}
+                >
+                  <div className="qrv-question-header">
+                    <div className="qrv-question-text">
+                      <span className="qrv-q-num">{qIndex + 1}.</span>
+                      {q.question}
+                    </div>
+                    <span className={`qrv-status-badge ${isCorrect ? "badge-correct" : "badge-wrong"}`}>
+                      {isCorrect ? (
+                        <><IoCheckmarkCircle /> Correct</>
+                      ) : (
+                        <><IoCloseCircle /> Wrong</>
+                      )}
+                    </span>
+                  </div>
+
+                  <div className="qrv-options-row">
+                    {q.options.map((opt, optIndex) => {
+                      const isSelected = opt === q.selected;
+                      const isAnswer = opt === q.correct;
+                      let optClass = "qrv-option";
+                      if (isSelected && isCorrect) optClass += " opt-selected-correct";
+                      else if (isSelected && !isCorrect) optClass += " opt-selected-wrong";
+                      else if (isAnswer && !isCorrect) optClass += " opt-correct-hint";
+
+                      return (
+                        <label className={optClass} key={optIndex}>
+                          <input
+                            type="radio"
+                            checked={isSelected}
+                            disabled
+                            readOnly
+                          />
+                          <span>{opt}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+
+                  <div className="qrv-answer-row">
+                    <div className={`qrv-answer-pill ${isCorrect ? "pill-correct" : "pill-wrong"}`}>
+                      <IoCheckmarkCircle />
+                      <span>Correct answer: <strong>{q.correct}</strong></span>
+                    </div>
+                    {!isCorrect && (
+                      <button
+                        className="qrv-explain-btn"
+                        onClick={() => toggleReveal(qIndex)}
+                      >
+                        {isOpen ? "Hide hint" : "Why?"}
+                      </button>
+                    )}
+                  </div>
+
+                  {isOpen && !isCorrect && (
+                    <div className="qrv-hint-box">
+                      You selected <strong>{q.selected || "nothing"}</strong>, but
+                      the correct answer is <strong>{q.correct}</strong>.
+                      {q.explanation && (
+                        <span> {q.explanation}</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {filtered.length === 0 && (
+              <p className="qrv-no-results">No questions match your search.</p>
+            )}
           </div>
         </div>
       </div>
