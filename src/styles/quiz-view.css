@@ -83,6 +83,8 @@
 .qv-edit-row {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
   padding: 16px 24px 0;
 }
 
@@ -160,12 +162,8 @@
   border-color: #d8d8d8;
 }
 
-/* ── Question row (text + toggle) ── */
+/* ── Question row ── */
 .qv-question-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
   margin-bottom: 12px;
 }
 
@@ -179,26 +177,6 @@
 .qv-q-num {
   color: #38b89a;
   margin-right: 5px;
-}
-
-/* ── Show/hide answer toggle ── */
-.qv-ans-toggle {
-  background: transparent;
-  border: 1px solid #4ba7b5;
-  color: #4ba7b5;
-  border-radius: 6px;
-  padding: 4px 12px;
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition: background 0.15s, color 0.15s;
-}
-.qv-ans-toggle:hover,
-.qv-ans-toggle.open {
-  background: #4ba7b5;
-  color: #fff;
 }
 
 /* ── Options ── */
@@ -229,10 +207,8 @@
   width: 14px;
   height: 14px;
   cursor: default;
-  color: #38b89a;
 }
 
-/* Highlighted correct answer option */
 .qv-option-answer {
   background: #d4f5ec;
   border-color: #38b89a;
@@ -246,7 +222,7 @@
   flex-shrink: 0;
 }
 
-/* ── Answer pill (shown below options) ── */
+/* ── Answer pill ── */
 .qv-answer-pill {
   display: inline-flex;
   align-items: center;
@@ -256,12 +232,6 @@
   font-size: 12px;
   border-radius: 8px;
   padding: 5px 14px;
-  animation: fadeSlide 0.2s ease;
-}
-
-@keyframes fadeSlide {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ── No results ── */

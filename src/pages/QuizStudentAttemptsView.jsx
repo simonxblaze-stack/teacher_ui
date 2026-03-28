@@ -27,9 +27,9 @@ export default function QuizStudentAttemptsView() {
   return (
     <div className="qsav-page">
 
-      <button className="qsav-back-btn" onClick={() => navigate(-1)}>
-        ← Back
-      </button>
+      <button className="qsav-back-btn" onClick={() => navigate(`/teacher/classes/${subjectId}/quizzes/${quizId}/submissions`)}>
+  ← Back
+</button>
 
       {/* ✅ ADDED WRAPPER */}
       <div className="qsav-content-card">

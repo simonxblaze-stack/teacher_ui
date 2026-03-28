@@ -59,7 +59,10 @@ export default function QuizView() {
 
   return (
     <div className="quiz-view-page">
-      <button className="qv-back-btn" onClick={() => navigate(-1)}>
+      <button
+        className="qv-back-btn"
+        onClick={() => navigate(`/teacher/classes/${subjectId}/quizzes`)}
+      >
         <IoChevronBack /> Back
       </button>
 
@@ -78,6 +81,14 @@ export default function QuizView() {
 
       <div className="qv-content-card">
         <div className="qv-edit-row">
+          <button
+            className="qv-view-submission-btn"
+            onClick={() =>
+              navigate(`/teacher/classes/${subjectId}/quizzes/${quizId}/submissions`)
+            }
+          >
+            View Submission
+          </button>
           <button
             className="qv-edit-btn"
             onClick={() => navigate("/teacher/classes/quizzes/create", { state: quiz })}
@@ -128,7 +139,8 @@ export default function QuizView() {
                   <div className="qv-options-row">
                     {(q.options || q.choices || []).map((opt, optIndex) => {
                       const optText = (opt.text || opt).trim();
-                      const isAnswer = optText.toLowerCase() === answerText.toLowerCase();
+                      const isAnswer =
+                        optText.toLowerCase() === answerText.toLowerCase();
                       return (
                         <label
                           className={`qv-option ${isAnswer ? "qv-option-answer" : ""}`}
@@ -147,23 +159,14 @@ export default function QuizView() {
                   {answerText && (
                     <div className="qv-answer-pill">
                       <IoCheckmarkCircle />
-                      <span>Correct answer: <strong>{answerText}</strong></span>
+                      <span>
+                        Correct answer: <strong>{answerText}</strong>
+                      </span>
                     </div>
                   )}
                 </div>
               );
             })}
-          </div>
-
-          <div className="qv-actions">
-            <button
-              className="qv-view-submission-btn"
-              onClick={() =>
-                navigate(`/teacher/classes/${subjectId}/quizzes/${quizId}/submissions`)
-              }
-            >
-              View Submission
-            </button>
           </div>
         </div>
       </div>

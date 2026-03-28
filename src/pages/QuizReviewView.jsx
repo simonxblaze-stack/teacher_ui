@@ -8,7 +8,7 @@ import "../styles/quiz-review-view.css";
 
 export default function QuizReviewView() {
   const navigate = useNavigate();
-  const { attemptId } = useParams();
+const { attemptId, quizId, subjectId, studentId } = useParams();
 
   const [data, setData] = useState(null);
   const [search, setSearch] = useState("");
@@ -39,9 +39,9 @@ export default function QuizReviewView() {
 
   return (
     <div className="qrv-page">
-      <button className="qrv-back-btn" onClick={() => navigate(-1)}>
-        <IoChevronBack /> Back
-      </button>
+      <button className="qrv-back-btn" onClick={() => navigate(`/teacher/classes/${subjectId}/quizzes/${quizId}/student/${studentId}`)}>
+  <IoChevronBack /> Back
+</button>
 
       <div className="qrv-card">
         <div className="qrv-header">
