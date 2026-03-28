@@ -12,6 +12,22 @@ const createEmptyQuestion = () => ({
 
 const TIME_PRESETS = [5, 10, 15, 30];
 
+/* ── tiny inline popup ── */
+function FieldError({ msg, onDismiss }) {
+  const [visible, setVisible] = useState(true);
+  if (!msg || !visible) return null;
+  const dismiss = () => { setVisible(false); onDismiss?.(); };
+  return (
+    <div className="cq-field-error" role="alert">
+      <span className="cq-field-error-icon">!</span>
+      {msg}
+      <button className="cq-field-error-close" type="button" onClick={dismiss} aria-label="Dismiss">
+        ×
+      </button>
+    </div>
+  );
+}
+
 export default function CreateQuiz() {
   const navigate = useNavigate();
   const { subjectId } = useParams();
@@ -23,46 +39,115 @@ export default function CreateQuiz() {
   const [customTime, setCustomTime] = useState("");
   const [useCustom, setUseCustom] = useState(false);
 
+  /* ── validation errors ── */
+  const [titleError, setTitleError] = useState("");
+  const [qErrors, setQErrors] = useState(() => [
+    { question: "", options: ["", "", "", ""], answer: "", explanation: "" },
+  ]);
+
+  const effectiveTimeLimit = useCustom ? parseInt(customTime) || 5 : timeLimit;
+
+  /* ── helpers to clear a specific error on user interaction ── */
+  const clearTitleError = () => setTitleError("");
+
+  const clearQError = (qIdx, field, optIdx = null) => {
+    setQErrors((prev) => {
+      const copy = prev.map((e) => ({ ...e, options: [...e.options] }));
+      if (field === "option" && optIdx !== null) {
+        copy[qIdx].options[optIdx] = "";
+      } else {
+        copy[qIdx][field] = "";
+      }
+      return copy;
+    });
+  };
+
+  /* ── question state updaters ── */
   const updateQuestion = (index, value) => {
     const copy = [...questions];
     copy[index].question = value;
     setQuestions(copy);
+    clearQError(index, "question");
   };
 
   const updateOption = (qIndex, optIndex, value) => {
     const copy = [...questions];
     copy[qIndex].options[optIndex] = value;
     setQuestions(copy);
+    clearQError(qIndex, "option", optIndex);
   };
 
   const updateExplanation = (index, value) => {
     const copy = [...questions];
     copy[index].explanation = value;
     setQuestions(copy);
+    clearQError(index, "explanation");
   };
 
   const setCorrectAnswer = (qIndex, optIndex) => {
     const copy = [...questions];
     copy[qIndex].answerIndex = optIndex;
     setQuestions(copy);
+    clearQError(qIndex, "answer");
   };
 
   const addQuestion = () => {
     setQuestions([...questions, createEmptyQuestion()]);
+    setQErrors((prev) => [
+      ...prev,
+      { question: "", options: ["", "", "", ""], answer: "", explanation: "" },
+    ]);
   };
 
-  const effectiveTimeLimit = useCustom
-    ? parseInt(customTime) || 5
-    : timeLimit;
+  /* ── validate and return true if all fields are valid ── */
+  const validate = () => {
+    let valid = true;
+
+    // title
+    let newTitleError = "";
+    if (!title.trim()) {
+      newTitleError = "Quiz title is required.";
+      valid = false;
+    }
+    setTitleError(newTitleError);
+
+    // questions
+    const newQErrors = questions.map((q) => {
+      const err = { question: "", options: ["", "", "", ""], answer: "", explanation: "" };
+
+      if (!q.question.trim()) {
+        err.question = "Question text is required.";
+        valid = false;
+      }
+
+      q.options.forEach((opt, i) => {
+        if (!opt.trim()) {
+          err.options[i] = `Option ${String.fromCharCode(97 + i).toUpperCase()} is required.`;
+          valid = false;
+        }
+      });
+
+      if (q.answerIndex === null) {
+        err.answer = "Please select the correct answer.";
+        valid = false;
+      }
+
+      if (!q.explanation.trim()) {
+        err.explanation = "Explanation is required.";
+        valid = false;
+      }
+
+      return err;
+    });
+
+    setQErrors(newQErrors);
+    return valid;
+  };
 
   const handleCreate = async () => {
+    if (!validate()) return;
+
     try {
-      for (let q of questions) {
-        if (!q.explanation.trim()) {
-          alert("Explanation is required for all questions");
-          return;
-        }
-      }
       setLoading(true);
 
       const quizRes = await api.post("/teacher/quizzes/", {
@@ -100,25 +185,25 @@ export default function CreateQuiz() {
 
   return (
     <div className="create-quiz-page">
-      <button
-        type="button"
-        className="cq-back-btn"
-        onClick={() => navigate(-1)}
-      >
+      <button type="button" className="cq-back-btn" onClick={() => navigate(-1)}>
         ← Back
       </button>
 
       <div className="cq-shell">
         <div className="cq-title-container">
-          <input
-            className="cq-title-input"
-            type="text"
-            placeholder="Quiz Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
+          {/* Quiz title */}
+          <div className="cq-title-field">
+            <input
+              className={`cq-title-input ${titleError ? "cq-input-error" : ""}`}
+              type="text"
+              placeholder="Quiz Title"
+              value={title}
+              onChange={(e) => { setTitle(e.target.value); clearTitleError(); }}
+            />
+            <FieldError msg={titleError} />
+          </div>
 
-          {/* ── Timer picker ── */}
+          {/* Timer picker */}
           <div className="cq-timer-picker">
             <span className="cq-timer-label">⏱ Time limit</span>
             <div className="cq-timer-presets">
@@ -126,13 +211,8 @@ export default function CreateQuiz() {
                 <button
                   key={min}
                   type="button"
-                  className={`cq-timer-btn ${
-                    !useCustom && timeLimit === min ? "active" : ""
-                  }`}
-                  onClick={() => {
-                    setTimeLimit(min);
-                    setUseCustom(false);
-                  }}
+                  className={`cq-timer-btn ${!useCustom && timeLimit === min ? "active" : ""}`}
+                  onClick={() => { setTimeLimit(min); setUseCustom(false); }}
                 >
                   {min} min
                 </button>
@@ -158,80 +238,91 @@ export default function CreateQuiz() {
               />
             )}
 
-            <span className="cq-timer-display">
-              {effectiveTimeLimit} min selected
-            </span>
+            <span className="cq-timer-display">{effectiveTimeLimit} min selected</span>
           </div>
         </div>
 
         <div className="cq-form-container">
           <div className="cq-questions-list">
-            {questions.map((q, qIndex) => (
-              <div key={qIndex} className="cq-question-block">
-                <div className="cq-question-top">
-                  <span className="cq-qno">Q{qIndex + 1}.</span>
-                  <input
-                    className="cq-question-input"
-                    placeholder="Enter Question"
-                    value={q.question}
-                    onChange={(e) => updateQuestion(qIndex, e.target.value)}
-                  />
-                </div>
-
-                <div className="cq-options-grid">
-                  {q.options.map((opt, optIndex) => (
-                    <div key={optIndex} className="cq-option-row">
-                      <span className="cq-option-letter">
-                        {String.fromCharCode(97 + optIndex)})
-                      </span>
+            {questions.map((q, qIndex) => {
+              const err = qErrors[qIndex] || { question: "", options: ["","","",""], answer: "", explanation: "" };
+              return (
+                <div key={qIndex} className="cq-question-block">
+                  {/* Question text */}
+                  <div className="cq-question-top">
+                    <span className="cq-qno">Q{qIndex + 1}.</span>
+                    <div style={{ flex: 1 }}>
                       <input
-                        className="cq-option-input"
-                        placeholder={`Option ${optIndex + 1}`}
-                        value={opt}
-                        onChange={(e) =>
-                          updateOption(qIndex, optIndex, e.target.value)
-                        }
+                        className={`cq-question-input ${err.question ? "cq-input-error" : ""}`}
+                        placeholder="Enter Question"
+                        value={q.question}
+                        onChange={(e) => updateQuestion(qIndex, e.target.value)}
                       />
+                      <FieldError msg={err.question} />
                     </div>
-                  ))}
-                </div>
+                  </div>
 
-                <div className="cq-answer-row">
-                  <span className="cq-answer-label">Answer:</span>
-                  <div className="cq-answer-choices">
-                    {q.options.map((_, optIndex) => (
-                      <label key={optIndex} className="cq-answer-choice">
-                        <input
-                          type="radio"
-                          name={`correct-answer-${qIndex}`}
-                          checked={q.answerIndex === optIndex}
-                          onChange={() => setCorrectAnswer(qIndex, optIndex)}
-                        />
-                        <span>{String.fromCharCode(97 + optIndex)}</span>
-                      </label>
+                  {/* Options */}
+                  <div className="cq-options-grid">
+                    {q.options.map((opt, optIndex) => (
+                      <div key={optIndex} className="cq-option-row">
+                        <span className="cq-option-letter">
+                          {String.fromCharCode(97 + optIndex)})
+                        </span>
+                        <div style={{ flex: 1 }}>
+                          <input
+                            className={`cq-option-input ${err.options[optIndex] ? "cq-input-error" : ""}`}
+                            placeholder={`Option ${optIndex + 1}`}
+                            value={opt}
+                            onChange={(e) => updateOption(qIndex, optIndex, e.target.value)}
+                          />
+                          <FieldError msg={err.options[optIndex]} />
+                        </div>
+                      </div>
                     ))}
                   </div>
-                </div>
 
-                <div className="cq-explanation-row">
-                  <span className="cq-answer-label">Explanation:</span>
-                  <textarea
-                    className="cq-explanation-input"
-                    placeholder="Explain why this is the correct answer..."
-                    value={q.explanation}
-                    onChange={(e) => updateExplanation(qIndex, e.target.value)}
-                  />
+                  {/* Answer picker */}
+                  <div className="cq-answer-row">
+                    <span className="cq-answer-label">Answer:</span>
+                    <div>
+                      <div className="cq-answer-choices">
+                        {q.options.map((_, optIndex) => (
+                          <label key={optIndex} className="cq-answer-choice">
+                            <input
+                              type="radio"
+                              name={`correct-answer-${qIndex}`}
+                              checked={q.answerIndex === optIndex}
+                              onChange={() => setCorrectAnswer(qIndex, optIndex)}
+                            />
+                            <span>{String.fromCharCode(97 + optIndex)}</span>
+                          </label>
+                        ))}
+                      </div>
+                      <FieldError msg={err.answer} />
+                    </div>
+                  </div>
+
+                  {/* Explanation */}
+                  <div className="cq-explanation-row">
+                    <span className="cq-answer-label">Explanation:</span>
+                    <div style={{ flex: 1 }}>
+                      <textarea
+                        className={`cq-explanation-input ${err.explanation ? "cq-input-error" : ""}`}
+                        placeholder="Explain why this is the correct answer..."
+                        value={q.explanation}
+                        onChange={(e) => updateExplanation(qIndex, e.target.value)}
+                      />
+                      <FieldError msg={err.explanation} />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="cq-bottom-row">
-            <button
-              type="button"
-              className="cq-add-question-btn"
-              onClick={addQuestion}
-            >
+            <button type="button" className="cq-add-question-btn" onClick={addQuestion}>
               Add Question
             </button>
             <button
