@@ -41,11 +41,6 @@ const privateSessionService = {
     return res.data;
   },
 
-  /**
-   * Backend expects: { scheduled_date, scheduled_time, reason }
-   * Frontend sends: { new_date, new_time, duration, note }
-   * We map the fields here.
-   */
   async rescheduleRequest(id, { new_date, new_time, duration, note = "" }) {
     const res = await api.post(`/sessions/${id}/reschedule/`, {
       scheduled_date: new_date,
