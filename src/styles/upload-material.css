@@ -1,6 +1,6 @@
 /* ✅ GLOBAL BACKGROUND (FIGMA MATCH) */
 body {
-  background: #C8D0D3;
+  background: #eaedee;
 }
 
 /* PAGE WRAPPER */
@@ -220,4 +220,28 @@ textarea.um-input {
   font-size: 11px;
   text-align: center;
   opacity: 0.8;
+}
+
+/* ✅ HEADER FIX */
+.sm-table-header {
+  display: grid;
+  grid-template-columns: 1.5fr 1.5fr 1fr 1fr auto;
+  align-items: center;
+  padding: 10px 20px;
+}
+
+/* ✅ ROW FIX */
+.sm-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1.5fr 1fr 1fr auto;
+  align-items: center;
+  padding: 14px 20px;
+}
+
+/* OPTIONAL: spacing */
+.sm-col-chapter,
+.sm-col-topic,
+.sm-col-date,
+.sm-col-files {
+  padding-right: 10px;
 }
