@@ -72,9 +72,17 @@ export default function ClassroomUI({ role }) {
     { source: Track.Source.ScreenShare, withPlaceholder: false },
   ]);
 
-  const teacherTrack = tracks.find((t) => t.participant.permissions?.canPublish);
+  // Separate teacher's camera and screen share tracks
+  const teacherTracks = tracks.filter((t) => t.participant.permissions?.canPublish);
+  const screenTrack = teacherTracks.find((t) => t.source === Track.Source.ScreenShare);
+  const cameraTrack = teacherTracks.find((t) => t.source === Track.Source.Camera);
 
-  if (!teacherTrack) {
+  // Prioritize screen share as main view; fall back to camera
+  const mainTrack = screenTrack || cameraTrack;
+  // Show camera as PiP only when screen sharing is active
+  const pipTrack = screenTrack ? cameraTrack : null;
+
+  if (!mainTrack) {
     return (
       <div className="waiting-screen">
         <h2>
@@ -104,7 +112,14 @@ export default function ClassroomUI({ role }) {
 
       {/* MAIN VIDEO STAGE */}
       <div className={`main-stage${!sidebarOpen ? " full-width" : ""}`}>
-        <VideoTrack trackRef={teacherTrack} />
+        <VideoTrack trackRef={mainTrack} />
+
+        {/* Picture-in-picture camera when screen sharing */}
+        {pipTrack && (
+          <div className="pip-camera">
+            <VideoTrack trackRef={pipTrack} />
+          </div>
+        )}
 
         {role === "teacher" && <TeacherControls />}
 
