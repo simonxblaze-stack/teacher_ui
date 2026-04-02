@@ -241,6 +241,29 @@
   100% { opacity: 1; }
 }
 
+/* Cancel Button */
+.session-cancel-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255,255,255,.15);
+  color: #fca5a5;
+  border: 1px solid rgba(252,165,165,.3);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  margin-left: auto;
+}
+
+.session-cancel-btn:hover {
+  background: #b91c1c;
+  color: #ffffff;
+  border-color: #b91c1c;
+}
+
 /* Empty / Loading states */
 .live-sessions-empty {
   text-align: center;

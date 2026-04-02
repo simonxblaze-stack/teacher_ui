@@ -2,6 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
 import { IoChevronBack } from "react-icons/io5";
 import { FiSearch } from "react-icons/fi";
+import { MdCancel } from "react-icons/md";
 import api from "../api/apiClient";
 import "../styles/live-sessions.css";
 
@@ -42,6 +43,19 @@ export default function LiveSessions() {
   const handleJoin = (session) => {
     if (!session.can_join) return;
     navigate(`/teacher/live/${session.id}`);
+  };
+
+  const handleCancel = async (e, sessionId) => {
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to cancel this session?")) return;
+
+    try {
+      await api.post(`/livestream/sessions/${sessionId}/cancel/`);
+      fetchSessions();
+    } catch (err) {
+      console.error("Failed to cancel session:", err);
+      alert(err.response?.data?.detail || "Failed to cancel session.");
+    }
   };
 
   const filtered = sessions.filter((s) => {
@@ -142,6 +156,16 @@ export default function LiveSessions() {
 
                     {session.computed_status === "LIVE" && (
                       <span className="live-badge">🔴 LIVE</span>
+                    )}
+
+                    {session.computed_status === "SCHEDULED" && (
+                      <button
+                        className="session-cancel-btn"
+                        onClick={(e) => handleCancel(e, session.id)}
+                        title="Cancel session"
+                      >
+                        <MdCancel /> Cancel
+                      </button>
                     )}
                   </div>
 
