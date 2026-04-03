@@ -38,20 +38,30 @@ export default function TeacherCreateLiveSession() {
         title: form.title,
         description: form.description,
         subject_id: subjectId,
-        start_time: form.start_time,   // ✅ FIXED
-        end_time: form.end_time,       // ✅ FIXED
+
+        // ✅ CORRECT for your backend (UTC → Django converts to IST)
+        start_time: new Date(form.start_time).toISOString(),
+        end_time: new Date(form.end_time).toISOString(),
       });
 
       navigate(-1);
     } catch (err) {
       console.error(err);
-      setError("Failed to create session.");
+      console.log("🔥 Backend Error:", err.response?.data);
+
+      setError(
+        err.response?.data?.detail ||
+        err.response?.data?.start_time?.[0] ||
+        err.response?.data?.end_time?.[0] ||
+        err.response?.data?.subject_id?.[0] ||
+        "Failed to create session."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ FIXED: keep datetime-local format only
+  // Keep datetime-local format for input
   const now = new Date();
   const minDateTime = new Date(
     now.getTime() - now.getTimezoneOffset() * 60000
