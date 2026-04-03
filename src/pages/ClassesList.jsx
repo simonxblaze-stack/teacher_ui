@@ -12,6 +12,13 @@ export default function ClassesList() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const pickFirstText = (...values) => {
+      const found = values.find(
+        (value) => typeof value === "string" && value.trim().length > 0
+      );
+      return found || "";
+    };
+
     async function fetchSubjects() {
       try {
         const res = await api.get(
@@ -21,10 +28,20 @@ export default function ClassesList() {
         // Normalize API response so subjectId is always available
         const normalized = res.data.map((s) => ({
           subjectId: s.subject_id || s.id,
-          subjectName: s.subject_name || s.name,
-          courseTitle: s.course_title || "",
-          board: s.board || "",
-          stream: s.stream || "",
+          subjectName: pickFirstText(s.subject_name, s.name),
+          courseTitle: pickFirstText(s.course_title, s.class_name, s.course),
+          board: pickFirstText(
+            s.board,
+            s.board_name,
+            s.board_title,
+            s.board?.name
+          ),
+          stream: pickFirstText(
+            s.stream,
+            s.stream_name,
+            s.stream_title,
+            s.stream?.name
+          ),
         }));
 
         setSubjects(normalized);
