@@ -48,6 +48,16 @@ export default function TeacherRoutes() {
     <Routes>
       <Route path="/" element={<RedirectToMainLogin />} />
 
+      {/* Private Session Live — fullscreen, outside TeacherLayout */}
+      <Route
+        path="/teacher/private-session/live/:id"
+        element={
+          <ProtectedTeacherRoute>
+            <PrivateSessionLive />
+          </ProtectedTeacherRoute>
+        }
+      />
+
       <Route
         path="/teacher"
         element={
