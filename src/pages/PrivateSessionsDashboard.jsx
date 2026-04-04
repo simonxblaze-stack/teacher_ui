@@ -148,18 +148,6 @@ export default function PrivateSessionsDashboard() {
 
   const pendingCount = requests.filter(r => r.status === "pending" || r.status === "proposed_changes" || r.status === "needs_reconfirmation").length;
 
-  const reqSubjects = useMemo(() => {
-    const set = new Set(requests.map(r => r.subject));
-    return [...set].sort();
-  }, [requests]);
-
-  const filteredRequests = useMemo(() => {
-    let f = requests;
-    if (reqStatusFilter !== "all") f = f.filter(r => r.status === reqStatusFilter);
-    if (reqSubjectFilter !== "all") f = f.filter(r => r.subject === reqSubjectFilter);
-    return searchFilter(f);
-  }, [requests, reqStatusFilter, reqSubjectFilter, searchTerm]);
-
   // Client-side search filter
   const searchFilter = (items) => {
     if (!searchTerm.trim()) return items;
@@ -175,6 +163,18 @@ export default function PrivateSessionsDashboard() {
       );
     });
   };
+
+  const reqSubjects = useMemo(() => {
+    const set = new Set(requests.map(r => r.subject));
+    return [...set].sort();
+  }, [requests]);
+
+  const filteredRequests = useMemo(() => {
+    let f = requests;
+    if (reqStatusFilter !== "all") f = f.filter(r => r.status === reqStatusFilter);
+    if (reqSubjectFilter !== "all") f = f.filter(r => r.subject === reqSubjectFilter);
+    return searchFilter(f);
+  }, [requests, reqStatusFilter, reqSubjectFilter, searchTerm]);
 
   const filteredHistory = searchFilter(
     historyFilter === "all" ? history : history.filter(h => h.status === historyFilter)
