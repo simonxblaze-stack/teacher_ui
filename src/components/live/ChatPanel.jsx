@@ -1,43 +1,51 @@
 import { useLocalParticipant, useRoomContext } from "@livekit/components-react";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IoSend } from "react-icons/io5";
 
-export default function ChatPanel({ role, messages = [], onSendMessage }) {
+export default function ChatPanel({ role }) {
   const { localParticipant } = useLocalParticipant();
   const room = useRoomContext();
 
   const [input, setInput] = useState("");
-  const messagesEndRef = useRef(null);
+  const [messages, setMessages] = useState([]);
+  const bottomRef = useRef(null);
 
   const isPresenter = role === "PRESENTER";
 
   /* =====================================
-     🔥 AUTO SCROLL
+     AUTO SCROLL
   ===================================== */
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   /* =====================================
-     🔥 RECEIVE MESSAGES (REAL-TIME)
-     NOTE: No local state mutation here
+     RECEIVE MESSAGES
   ===================================== */
   useEffect(() => {
     if (!room) return;
 
     const handleData = (payload, participant) => {
-      const text = new TextDecoder().decode(payload);
-
       try {
+        const text = new TextDecoder().decode(payload);
         const msg = JSON.parse(text);
-        if (msg.type === "raise-hand") return;
+
+        // ignore raise-hand / lower-hand signals
+        if (msg.type === "raise-hand" || msg.type === "lower-hand") return;
+
+        // chat message
+        if (msg.type === "chat") {
+          setMessages((prev) => [
+            ...prev,
+            {
+              sender: participant?.name || participant?.identity || "Unknown",
+              text: msg.text,
+              isMe: false,
+              time: Date.now(),
+            },
+          ]);
+        }
       } catch {}
-
-      // ⚠️ IMPORTANT:
-      // Do NOT call setMessages here anymore
-      // Let backend / parent handle persistence + state
-
-      console.log("📩 Incoming message:", text);
     };
 
     room.on("dataReceived", handleData);
@@ -45,100 +53,71 @@ export default function ChatPanel({ role, messages = [], onSendMessage }) {
   }, [room]);
 
   /* =====================================
-     🔥 SEND MESSAGE (PERSISTENT)
+     SEND MESSAGE
   ===================================== */
   const sendMessage = async () => {
     if (!input.trim()) return;
 
     try {
-      // ✅ Send to backend (persistent)
-      await onSendMessage(input);
-
-      // ✅ Also broadcast via LiveKit (real-time)
       const encoder = new TextEncoder();
       await localParticipant.publishData(
-        encoder.encode(input),
+        encoder.encode(JSON.stringify({ type: "chat", text: input.trim() })),
         { reliable: true }
       );
 
+      // add to own messages locally
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: "You",
+          text: input.trim(),
+          isMe: true,
+          time: Date.now(),
+        },
+      ]);
+
       setInput("");
     } catch (e) {
-      console.error("❌ sendMessage failed", e);
+      console.error("sendMessage failed", e);
     }
   };
 
   /* =====================================
-     🔥 RAISE HAND (VIEWERS ONLY)
+     FORMAT TIME
   ===================================== */
-  const raiseHand = async () => {
-    const message = { type: "raise-hand" };
-    const encoder = new TextEncoder();
-
-    await localParticipant.publishData(
-      encoder.encode(JSON.stringify(message)),
-      { reliable: true }
-    );
-  };
-
-  /* =====================================
-     🔥 FORMAT TIME
-  ===================================== */
-  const formatTime = (date) =>
-    new Date(date).toLocaleTimeString([], {
+  const formatTime = (ts) =>
+    new Date(ts).toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
     });
 
   return (
     <div className="chat-panel">
+      <div className="chat-header">Chat</div>
 
-      {/* MESSAGES */}
       <div className="chat-messages">
         {messages.length === 0 && (
           <p className="chat-empty">No messages yet. Say hello!</p>
         )}
 
         {messages.map((msg, i) => (
-          <div
-            key={i}
-            className={`chat-row ${msg.isMe ? "me" : "other"}`}
-          >
+          <div key={i} className={`chat-row ${msg.isMe ? "me" : "other"}`}>
             <div
-              className={`chat-bubble 
-                ${msg.isMe ? "me-bubble" : ""} 
-                ${msg.isTeacher ? "teacher-bubble" : ""}
-              `}
+              className={`chat-bubble ${msg.isMe ? "me-bubble" : ""} ${
+                !msg.isMe && isPresenter ? "teacher-bubble" : ""
+              }`}
             >
-              <span className="chat-name">
-                {msg.isMe ? "You" : msg.sender}
-
-                {msg.isTeacher && !msg.isMe && (
-                  <span className="teacher-tag"> • Presenter</span>
-                )}
-              </span>
-
+              <span className="chat-name">{msg.sender}</span>
               <div className="chat-text">{msg.text}</div>
-              {msg.time && <div className="chat-time">{formatTime(msg.time)}</div>}
+              <div className="chat-time">{formatTime(msg.time)}</div>
             </div>
           </div>
         ))}
 
-        <div ref={messagesEndRef} />
+        <div ref={bottomRef} />
       </div>
 
-      {/* INPUT */}
       <div className="chat-input-area">
-
-        {!isPresenter && (
-          <button
-            onClick={raiseHand}
-            className="raise-hand-btn"
-            title="Raise hand"
-          >
-            ✋
-          </button>
-        )}
-
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -146,7 +125,7 @@ export default function ChatPanel({ role, messages = [], onSendMessage }) {
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
         />
 
-        <button onClick={sendMessage} title="Send">
+        <button className="chat-send-btn" onClick={sendMessage} title="Send">
           <IoSend size={16} />
         </button>
       </div>
